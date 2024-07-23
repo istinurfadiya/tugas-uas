@@ -1,28 +1,33 @@
 <?php
 include '../koneksi.php';
 
-// Proses input form jika ada data POST yang dikirimkan
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Tangkap data dari form
-    $kodetransaksi = $_POST['kodetransaksi'];
-    $kodebuku = $_POST['kodebuku'];
-    $tglpinjam = $_POST['tglpinjam'];
-    $jumlahbuku = $_POST['jumlahbuku'];
-    $status = $_POST['status'];
-    $tglkembali = $_POST['tglkembali'];
+    $kodeanggota = $_POST['kodeanggota'];
+    $namaanggota = $_POST['namaanggota'];
+    $jeniskelamin = $_POST['jeniskelamin'];
+    $alamatanggota = $_POST['alamatanggota'];
+    $tlpanggota = $_POST['tlpanggota'];
+    $tempatlahir = $_POST['tempatlahir'];
+    $tgllahir = $_POST['tgllahir'];
 
-    // Query SQL untuk menyimpan data ke dalam tabel detailtransaksi
-    $sql = "INSERT INTO detailtransaksi (kodetransaksi, kodebuku, tglpinjam, jumlahbuku, status, tglkembali) 
-            VALUES ('$kodetransaksi', '$kodebuku', '$tglpinjam', '$jumlahbuku', '$status', '$tglkembali')";
+    $sql = "INSERT INTO anggota (kodeanggota, namaanggota, jeniskelamin, alamatanggota, tlpanggota, tempatlahir, tgllahir) VALUES ('$kodeanggota', '$namaanggota', '$jeniskelamin', '$alamatanggota', '$tlpanggota', '$tempatlahir', '$tgllahir')";
 
-    // Eksekusi query dan periksa hasilnya
     if ($koneksi->query($sql) === TRUE) {
-        echo "<div class='alert alert-success'>Record added successfully</div>";
+        echo "<div class='alert alert-success alert-dismissible fade show' role='alert'>
+                <strong>Success!</strong> DATA BERHASIL DI TAMBAHKAN.
+                <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
+                    <span aria-hidden='true'>&times;</span>
+                </button>
+              </div>";
     } else {
-        echo "<div class='alert alert-danger'>Error: " . $sql . "<br>" . $koneksi->error . "</div>";
+        echo "<div class='alert alert-danger alert-dismissible fade show' role='alert'>
+                <strong>Error!</strong> " . $sql . "<br>" . $koneksi->error . "
+                <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
+                    <span aria-hidden='true'>&times;</span>
+                </button>
+              </div>";
     }
 
-    // Tutup koneksi database
     $koneksi->close();
 }
 ?>
@@ -30,61 +35,87 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Tambah Data Transaksi</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <title>Tambah Anggota</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         body {
-            font-size: 0.9rem; /* Mengurangi ukuran font */
+            background-color: #f8f9fa;
         }
-        .container {
-            max-width: 500px; /* Mengatur lebar maksimum container */
-            padding: 15px; /* Mengurangi padding di container */
+        .form-container {
+            max-width: 400px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .form-container h2 {
+            margin-bottom: 20px;
+            color: #343a40;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #004085;
         }
         .form-group label {
-            font-size: 0.8rem; /* Mengurangi ukuran font label */
+            font-weight: 600;
+            color: #495057;
         }
         .form-control {
-            font-size: 0.9rem; /* Mengurangi ukuran font input */
-        }
-        .btn {
-            font-size: 0.8rem; /* Mengurangi ukuran font tombol */
-            padding: 5px 10px; /* Mengurangi padding tombol */
-        }
-        .header-title {
-            color: #007bff; /* Warna biru untuk tulisan */
+            border-radius: 0.25rem;
+            border: 1px solid #ced4da;
+            padding: 0.75rem 1.25rem;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2 class="mt-4 mb-4 header-title">Tambah Data Transaksi</h2>
-        <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
-            <div class="form-group">
-                <label for="kodetransaksi">Kode Transaksi</label>
-                <input type="text" id="kodetransaksi" name="kodetransaksi" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="kodebuku">Kode Buku</label>
-                <input type="text" id="kodebuku" name="kodebuku" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="tglpinjam">Tanggal Pinjam</label>
-                <input type="date" id="tglpinjam" name="tglpinjam" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="jumlahbuku">Jumlah Buku</label>
-                <input type="number" id="jumlahbuku" name="jumlahbuku" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="status">Status</label>
-                <input type="text" id="status" name="status" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="tglkembali">Tanggal Kembali</label>
-                <input type="date" id="tglkembali" name="tglkembali" class="form-control">
-            </div>
-            <button type="submit" class="btn btn-primary">Tambah</button>
-        </form>
+        <div class="form-container">
+            <h2>Tambah Anggota</h2>
+            <a href="form_anggota.php" class="btn btn-primary mb-3">KEMBALI</a>
+            <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
+                <div class="form-group">
+                    <label for="kodeanggota">Kode Anggota:</label>
+                    <input type="text" class="form-control" id="kodeanggota" name="kodeanggota" required>
+                </div>
+                <div class="form-group">
+                    <label for="namaanggota">Nama Anggota:</label>
+                    <input type="text" class="form-control" id="namaanggota" name="namaanggota" required>
+                </div>
+                <div class="form-group">
+                    <label for="jeniskelamin">Jenis Kelamin:</label>
+                    <select class="form-control" id="jeniskelamin" name="jeniskelamin" required>
+                        <option value="" disabled selected>Select Jenis Kelamin</option>
+                        <option value="Laki-laki">Laki-laki</option>
+                        <option value="Perempuan">Perempuan</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="alamatanggota">Alamat Anggota:</label>
+                    <input type="text" class="form-control" id="alamatanggota" name="alamatanggota" required>
+                </div>
+                <div class="form-group">
+                    <label for="tlpanggota">Telepon Anggota:</label>
+                    <input type="text" class="form-control" id="tlpanggota" name="tlpanggota" required>
+                </div>
+                <div class="form-group">
+                    <label for="tempatlahir">Tempat Lahir:</label>
+                    <input type="text" class="form-control" id="tempatlahir" name="tempatlahir" required>
+                </div>
+                <div class="form-group">
+                    <label for="tgllahir">Tanggal Lahir:</label>
+                    <input type="date" class="form-control" id="tgllahir" name="tgllahir" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Create</button>
+            </form>
+        </div>
     </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.7/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
