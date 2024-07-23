@@ -1,121 +1,98 @@
 <?php
 include '../koneksi.php';
 
-if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['kodetransaksi'])) {
-    $kodetransaksi = $_GET['kodetransaksi'];
+// Ambil semua kode buku dari tabel buku
+$sql_buku = "SELECT kodebuku FROM buku";
+$result_buku = $koneksi->query($sql_buku);
 
-    $sql = "SELECT * FROM mastertransaksi WHERE kodetransaksi = ?";
-    if ($stmt = $koneksi->prepare($sql)) {
-        $stmt->bind_param("s", $kodetransaksi);
-        $stmt->execute();
-        $result = $stmt->get_result();
+// Inisialisasi array untuk menyimpan semua kode buku
+$kodebuku_options = array();
 
-        if ($result->num_rows == 1) {
-            $row = $result->fetch_assoc();
-        } else {
-            $message = "<div class='alert alert-warning'>Transaksi tidak ditemukan.</div>";
-        }
-
-        $stmt->close();
-    } else {
-        $message = "<div class='alert alert-danger'>Error preparing statement: " . $koneksi->error . "</div>";
+if ($result_buku->num_rows > 0) {
+    while ($row_buku = $result_buku->fetch_assoc()) {
+        $kodebuku_options[] = $row_buku['kodebuku'];
     }
+} else {
+    echo "Tidak ada data buku tersedia.";
 }
 
+// Proses update data jika form dikirimkan
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $kodetransaksi = $_POST['kodetransaksi'];
-    $tgltransaksi = $_POST['tgltransaksi'];
-    $kodeanggota = $_POST['kodeanggota'];
+    $kodebuku = $_POST['kodebuku'];
+    $tglpinjam = $_POST['tglpinjam'];
+    $jumlahbuku = $_POST['jumlahbuku'];
+    $status = $_POST['status'];
+    $tglkembali = $_POST['tglkembali'];
 
-    $sql = "UPDATE mastertransaksi SET tgltransaksi = ?, kodeanggota = ? WHERE kodetransaksi = ?";
-    if ($stmt = $koneksi->prepare($sql)) {
-        $stmt->bind_param("sss", $tgltransaksi, $kodeanggota, $kodetransaksi);
+    // Query untuk melakukan update data transaksi
+    $sql_update = "UPDATE detailtransaksi SET kodebuku='$kodebuku', tglpinjam='$tglpinjam', jumlahbuku='$jumlahbuku', status='$status', tglkembali='$tglkembali' WHERE kodetransaksi='$kodetransaksi'";
 
-        if ($stmt->execute()) {
-            $message = "<div class='alert alert-success'>Data berhasil diupdate</div>";
-        } else {
-            $message = "<div class='alert alert-danger'>Error: " . $stmt->error . "</div>";
-        }
-
-        $stmt->close();
+    if ($koneksi->query($sql_update) === TRUE) {
+        echo "<div class='alert alert-success'>Record updated successfully</div>";
     } else {
-        $message = "<div class='alert alert-danger'>Error preparing statement: " . $koneksi->error . "</div>";
+        echo "<div class='alert alert-danger'>Error: " . $sql_update . "<br>" . $koneksi->error . "</div>";
     }
 
     $koneksi->close();
 }
+
+// Ambil data transaksi berdasarkan kodetransaksi yang diberikan
+if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['kodetransaksi'])) {
+    $kodetransaksi = $_GET['kodetransaksi'];
+
+    $sql = "SELECT * FROM detailtransaksi WHERE kodetransaksi='$kodetransaksi'";
+    $result = $koneksi->query($sql);
+
+    if ($result->num_rows == 1) {
+        $row = $result->fetch_assoc();
+    } else {
+        echo "<div class='alert alert-warning'>Transaksi tidak ditemukan.</div>";
+    }
+}
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Update Transaksi</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .container {
-            max-width: 500px;
-            margin-top: 2rem;
-        }
-        .form-container {
-            background: #ffffff;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .form-container h2 {
-            font-size: 1.25rem;
-            margin-bottom: 1rem;
-            color: #343a40;
-        }
-        .form-group label {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #495057;
-        }
-        .form-group input {
-            font-size: 0.875rem;
-            padding: 0.5rem;
-            border-radius: 0.25rem;
-            border: 1px solid #ced4da;
-        }
-        .form-group input:focus {
-            border-color: #80bdff;
-            box-shadow: 0 0 0 0.2rem rgba(38, 143, 255, 0.25);
-        }
-        .btn-primary {
-            font-size: 0.875rem;
-            padding: 0.5rem 1rem;
-            border-radius: 0.25rem;
-        }
-    </style>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
 </head>
 <body>
     <div class="container">
-        <div class="form-container">
-            <h2>Update Transaksi</h2>
-            <?php if (isset($message)) echo $message; ?>
-            <?php if (isset($row)): ?>
-                <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
-                    <input type="hidden" name="kodetransaksi" value="<?php echo htmlspecialchars($row['kodetransaksi']); ?>">
-                    <div class="form-group">
-                        <label for="tgltransaksi">Tanggal Transaksi</label>
-                        <input type="date" id="tgltransaksi" name="tgltransaksi" class="form-control" value="<?php echo htmlspecialchars($row['tgltransaksi']); ?>" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="kodeanggota">Kode Anggota</label>
-                        <input type="text" id="kodeanggota" name="kodeanggota" class="form-control" value="<?php echo htmlspecialchars($row['kodeanggota']); ?>" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Update</button>
-                </form>
-            <?php else: ?>
-                <div class="alert alert-warning">Data transaksi tidak ditemukan. Silakan kembali ke <a href="index1.php">halaman utama</a>.</div>
-            <?php endif; ?>
-        </div>
+        <h2 class="mt-5">Update Transaksi</h2>
+        <?php if (isset($row)): ?>
+        <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
+            <input type="hidden" name="kodetransaksi" value="<?php echo $row['kodetransaksi']; ?>">
+            <div class="form-group">
+                <label>Kode Buku</label>
+                <select name="kodebuku" class="form-control" required>
+                    <?php foreach ($kodebuku_options as $option): ?>
+                        <option value="<?php echo $option; ?>" <?php if ($row['kodebuku'] == $option) echo 'selected'; ?>><?php echo $option; ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Tanggal Pinjam</label>
+                <input type="date" name="tglpinjam" class="form-control" value="<?php echo $row['tglpinjam']; ?>" required>
+            </div>
+            <div class="form-group">
+                <label>Jumlah Buku</label>
+                <input type="number" name="jumlahbuku" class="form-control" value="<?php echo $row['jumlahbuku']; ?>" required>
+            </div>
+            <div class="form-group">
+                <label>Status</label>
+                <input type="text" name="status" class="form-control" value="<?php echo $row['status']; ?>" required>
+            </div>
+            <div class="form-group">
+                <label>Tanggal Kembali</label>
+                <input type="date" name="tglkembali" class="form-control" value="<?php echo $row['tglkembali']; ?>">
+            </div>
+            <button type="submit" class="btn btn-primary">Update</button>
+        </form>
+        <?php else: ?>
+        <div class="alert alert-warning">Data transaksi tidak ditemukan. Silakan kembali ke <a href="data_datatransaksi.php">halaman utama</a>.</div>
+        <?php endif; ?>
     </div>
 </body>
 </html>
