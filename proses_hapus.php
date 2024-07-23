@@ -1,49 +1,30 @@
 <?php
-include '../koneksi.php';
+include '../koneksi.php'; // Pastikan koneksi database Anda sesuai dengan path ini
 
-if (isset($_GET['kodepenulisan'])) {
-    $kodepenulisan = $_GET['kodepenulisan'];
+// Mendapatkan kode penerbit dari query string
+if (isset($_GET['kodepenerbit'])) {
+    $kodepenerbit = $_GET['kodepenerbit'];
 
-    // Tambahkan debugging
-    echo "<div class='alert alert-info'>DEBUG: kodepenulisan = $kodepenulisan</div>";
+    // Query untuk menghapus data
+    $sql = "DELETE FROM penerbit WHERE kodepenerbit = ?";
+    if ($stmt = $koneksi->prepare($sql)) {
+        $stmt->bind_param("s", $kodepenerbit);
 
-    // Step 1: Delete dependent rows in the detailtransaksi table
-    $deleteDetailTransaksiSql = "
-        DELETE detailtransaksi 
-        FROM detailtransaksi 
-        JOIN buku ON detailtransaksi.kodebuku = buku.kodebuku 
-        WHERE buku.kodepenulis = '$kodepenulisan'
-    ";
-    if ($koneksi->query($deleteDetailTransaksiSql) === TRUE) {
-        echo "<div class='alert alert-info'>Dependent rows in detailtransaksi table deleted successfully</div>";
+        if ($stmt->execute()) {
+            // Redirect ke halaman utama setelah sukses
+            header("Location: data_penerbit.php");
+            exit();
+        } else {
+            $error_message = "Error: " . $stmt->error;
+        }
+
+        $stmt->close();
     } else {
-        echo "<div class='alert alert-danger'>Error deleting dependent rows in detailtransaksi: " . $koneksi->error . "</div>";
-        $koneksi->close();
-        exit();
-    }
-
-    // Step 2: Delete dependent rows in the buku table
-    $deleteBukuSql = "DELETE FROM buku WHERE kodepenulis='$kodepenulisan'";
-    if ($koneksi->query($deleteBukuSql) === TRUE) {
-        echo "<div class='alert alert-info'>Dependent rows in buku table deleted successfully</div>";
-    } else {
-        echo "<div class='alert alert-danger'>Error deleting dependent rows in buku: " . $koneksi->error . "</div>";
-        $koneksi->close();
-        exit();
-    }
-
-    // Step 3: Delete the record from the penulis table
-    $deletePenulisSql = "DELETE FROM penulis WHERE kodepenulisan='$kodepenulisan'";
-    if ($koneksi->query($deletePenulisSql) === TRUE) {
-        echo "<div class='alert alert-success'>Record deleted successfully</div>";
-        header("Location: data_penulis.php"); // Redirect ke halaman data penulis setelah penghapusan
-        exit();
-    } else {
-        echo "<div class='alert alert-danger'>Error: " . $deletePenulisSql . "<br>" . $koneksi->error . "</div>";
+        $error_message = "Error preparing statement: " . $koneksi->error;
     }
 
     $koneksi->close();
 } else {
-    echo "<div class='alert alert-warning'>Kode penulisan tidak ditemukan.</div>";
+    die("Kode penerbit tidak diset.");
 }
 ?>
