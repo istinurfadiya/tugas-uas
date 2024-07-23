@@ -1,26 +1,23 @@
 <?php
 include '../koneksi.php';
 
-if (isset($_GET['kodekategori'])) {
-    $kodekategori = $_GET['kodekategori'];
+if (isset($_GET['kodebuku'])) {
+    $kodebuku = $_GET['kodebuku'];
 
-    // Sanitize input
-    $kodekategori = $koneksi->real_escape_string($kodekategori);
+    // Prepare SQL DELETE statement
+    $sql = "DELETE FROM buku WHERE kodebuku = ?";
+    $stmt = $koneksi->prepare($sql);
+    $stmt->bind_param("s", $kodebuku);
 
-    // Query to delete the record
-    $sql = "DELETE FROM kategori WHERE kodekategori='$kodekategori'";
-
-    if ($koneksi->query($sql) === TRUE) {
-        // Redirect to the main page with a success message
-        header("Location: data_kategori.php?message=success");
+    if ($stmt->execute()) {
+        header('Location: data_buku.php'); // Redirect to the main page or a confirmation page
+        exit;
     } else {
-        // Redirect to the main page with an error message
-        header("Location: data_kategori.php?message=error");
+        echo "Gagal menghapus data.";
     }
-
-    $koneksi->close();
 } else {
-    // Redirect to the main page if no kodekategori is provided
-    header("Location: data_kategori.php?message=invalid");
+    echo "Kode Buku tidak ditemukan.";
 }
+
+$koneksi->close();
 ?>
